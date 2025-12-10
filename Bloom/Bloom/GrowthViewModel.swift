@@ -36,19 +36,14 @@ class GrowthViewModel: ObservableObject {
 
     /// Growth progress (0.0 - 1.0+)
     var progress: Double {
-        // TODO: Calculate progress as currentSteps / dailyGoal
-        // Guard against division by zero
-        // Return a Double between 0.0 and 1.0+ (can exceed 1.0 if goal is surpassed)
-
-        return 0.0
+        guard dailyGoal > 0 else { return 0.0 }
+        
+        return Double(currentSteps) / Double(dailyGoal)
     }
 
     /// Progress as a percentage (0-100+)
     var progressPercentage: Int {
-        // TODO: Convert progress to Int percentage
-        // Example: 0.75 → 75
-
-        return 0
+        return Int(progress * 100)
     }
 
     // MARK: - HealthKit
@@ -62,6 +57,7 @@ class GrowthViewModel: ObservableObject {
 
     init() {
         // TODO: Call loadPersistedData() to restore saved state
+        loadPersistedData()
 
     }
 
@@ -107,19 +103,17 @@ class GrowthViewModel: ObservableObject {
 
     /// Manually set step count (for testing/debugging)
     func setSteps(_ steps: Int) {
-        // TODO: Implement manual step setting
-        // 1. Set currentSteps = steps
-        // 2. Update plantStage using PlantStage.from(progress:)
-        // 3. Call savePersistedData()
+        currentSteps = steps
+        plantStage = PlantStage.from(progress: progress)
+        savePersistedData()
 
     }
 
     /// Update daily goal
     func updateGoal(_ newGoal: Int) {
-        // TODO: Implement goal update
-        // 1. Set dailyGoal (ensure minimum 1000 steps using max())
-        // 2. Recalculate plantStage
-        // 3. Call savePersistedData()
+        dailyGoal = max(1_000, newGoal)
+        plantStage = PlantStage.from(progress: progress)
+        savePersistedData()
 
     }
 
@@ -144,6 +138,29 @@ class GrowthViewModel: ObservableObject {
         //    - currentSteps from Keys.lastKnownStepCount
         //    - dailyGoal from Keys.dailyGoal (default to 10_000 if 0)
         // 4. Recalculate plantStage from progress
+        let defaults = UserDefaults.standard
+        
+        if let lastDate = defaults.object(forKey: Keys.lastUpdateDate) as? Date {
+            if !Calendar.current.isDateInToday(lastDate) {
+                print("New day detected: Resetting steps.")
+                
+                currentSteps = 0
+                plantStage = .seed
+                
+                let saveGoal = defaults.integer(forKey: Keys.dailyGoal)
+                dailyGoal = saveGoal > 0 ? saveGoal : 10_000
+                
+                return
+            }
+        }
+        
+        currentSteps = defaults.integer(forKey: Keys.lastKnownStepCount)
+        
+        let saveGoal = defaults.integer(forKey: Keys.dailyGoal)
+        dailyGoal = saveGoal > 0 ? saveGoal : 10_000
+        
+        plantStage = PlantStage.from(progress: progress)
+        
 
     }
 
@@ -157,6 +174,13 @@ class GrowthViewModel: ObservableObject {
         //    - dailyGoal → Keys.dailyGoal
         //    - plantStage.rawValue → Keys.currentStageIndex
         //    - Date() → Keys.lastUpdateDate
+        let defaults = UserDefaults.standard
+        
+        defaults.set(currentSteps, forKey: Keys.lastKnownStepCount)
+        defaults.set(dailyGoal, forKey: Keys.dailyGoal)
+        defaults.set(plantStage.rawValue, forKey: Keys.currentStageIndex)
+        defaults.set(Date(), forKey: Keys.lastUpdateDate)
+        
 
     }
 }
