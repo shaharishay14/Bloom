@@ -1,67 +1,124 @@
 # PRODUCT REQUIREMENTS DOCUMENT (PRD)
 
-**Project:** Bloom
-**Version:** 1.0
+| Metadata           | Details                  |
+| :----------------- | :----------------------- |
+| **Project**        | Bloom                    |
+| **Version**        | 1.1 (Production Ready)   |
+| **Status**         | Approved for Development |
+| **Platform**       | iOS 17.0+                |
+| **Device Support** | iPhone (Portrait Only)   |
 
 ---
 
-## 1. CORE CONCEPT
+## 1. EXECUTIVE SUMMARY
 
-**Bloom** is an aesthetic step-tracking app.
-**The Hook:** The user walks to keep their digital garden alive. The plant resets every morning, creating a daily loop of nurturing.
-
----
-
-## 2. FEATURE SPECIFICATIONS
-
-### 2.1 The "Growth Engine" (Logic)
-
-The core mechanic is mapping **Steps** to **Visual Stages**.
-
-- **Input:** Daily Step Count (from HealthKit).
-- **Reset:** Auto-reset to Stage 0 at 00:00 (Midnight).
-- **Stages:**
-  - **Stage 0 (0 - 999):** Dormant Seed / Soil.
-  - **Stage 1 (1,000 - 2,499):** Sprout (Green shoot).
-  - **Stage 2 (2,500 - 3,999):** Seedling (First leaves).
-  - **Stage 3 (4,000 - 5,999):** Growth (Stem elongates).
-  - **Stage 4 (6,000 - 7,999):** Budding (Closed flower bud).
-  - **Stage 5 (8,000 - 9,999):** Pre-Bloom (Petal color visible).
-  - **Stage 6 (10,000+):** Full Bloom (Glowing effect).
-
-### 2.2 The Main Dashboard (UI)
-
-- **Centerpiece:** The Plant View (taking up 60% of vertical space).
-- **Background:** A subtle gradient that simulates the sky (Dawn to Dusk).
-- **Data Display:** Minimalist. Do not show graphs. Show only current step count and a motivational phrase (e.g., "Keep growing").
-- **Animation:** Transitions between stages must be smooth (using `matchedGeometryEffect` or standard transitions), never instant.
-
-### 2.3 The Widget
-
-- **Function:** A mirror of the main app.
-- **State:** Must update periodically to show the current growth stage on the Home Screen.
-- **Fallback:** If permission is denied, show a "Sleeping Seed" icon.
+**Bloom** is a "Zen" utility app that visualizes physical activity as the growth of a digital plant.
+**The Problem:** Activity rings and bar charts create anxiety and feel like "chores."
+**The Solution:** An ambient, aesthetic interface where walking feels like nurturing a living thing.
+**Core Loop:** Walk → Open App → Plant Grows → Midnight Reset.
 
 ---
 
-## 3. DESIGN SYSTEM GUIDELINES
+## 2. DETAILED FEATURE SPECIFICATIONS
 
-### 3.1 Colors ("Organic Modern")
+### 2.1 The Growth Engine (Core Logic)
 
-- **Soil:** `#3E2723`
-- **Stem/Leaf:** `#81C784`
-- **Petals:** `#F48FB1` (Pink) or `#FFF59D` (Yellow) - _User customizable in V2._
-- **Sky Gradient:** `#E3F2FD` (Light Blue) to `#E8EAF6` (Soft Indigo).
+The app tracks steps relative to a daily goal (Default: 10,000 steps).
 
-### 3.2 Typography
+- **Data Source:** HealthKit (`HKQuantityType.stepCount`).
+- **Query Frequency:** On App Launch + Background Refresh (every ~1 hour).
+- **The 7 Stages of Growth:**
 
-- **Font Family:** SF Pro Rounded.
-- **Weight:** Medium to Bold for headers; Regular for stats.
+  - **Stage 0 (0% - 9%):** `plant_00_seed` (A seed in soil).
+  - **Stage 1 (10% - 24%):** `plant_01_sprout` (Tiny green shoot).
+  - **Stage 2 (25% - 39%):** `plant_02_seedling` (Two leaves).
+  - **Stage 3 (40% - 59%):** `plant_03_vegetative` (Stem grows taller).
+  - **Stage 4 (60% - 79%):** `plant_04_bud` (Closed flower bud).
+  - **Stage 5 (80% - 99%):** `plant_05_prebloom` (Petals visible).
+  - **Stage 6 (100%+):** `plant_06_bloom` (Full flower + Particles).
+
+- **The Midnight Reset:**
+
+  - At 00:00 local time, the plant must reset to Stage 0.
+  - _Edge Case:_ If the user crosses time zones, respect the _local device time_.
+
+### 2.2 The User Interface (Dashboard)
+
+- **Layout:**
+  - **Top:** Minimalist Header ("Good Morning").
+  - **Center:** The Plant View (60% screen height).
+  - **Bottom:** Step Counter (e.g., "4,250 / 10,000") & Progress Bar.
+- **Visual Effects:**
+  - **Dynamic Background:**
+    - 06:00 - 18:00: `DawnGradient` (Soft Blue -> White).
+    - 18:00 - 06:00: `DuskGradient` (Deep Indigo -> Black).
+  - **Transitions:**
+    - State changes must use `.animation(.spring(response: 0.6, dampingFraction: 0.7))`.
+    - **No hard cuts** between images. Use `.transition(.opacity)`.
+
+### 2.3 Home Screen Widgets
+
+- **Supported Families:** `systemSmall`, `systemMedium`.
+- **Update Policy:** `.atEnd` (Refresh every time the timeline expires, approx 15-30 min).
+- **UI Mirroring:** The widget must show the _exact same_ plant stage image as the main app.
+- **Deep Link:** Tapping the widget opens the app directly.
 
 ---
 
-## 4. TECHNICAL CONSTRAINTS
+## 3. TECHNICAL & DATA REQUIREMENTS
 
-- **Device Support:** iOS 17+.
-- **HealthKit:** Read-only access (Steps).
-- **Orientation:** Portrait only.
+### 3.1 HealthKit Integration
+
+- **Permission Flow:**
+  - On first launch -> Show "Welcome" screen -> "Connect Health" button -> System Prompt.
+- **Permission Denied Handling:**
+  - If user denies access, show a specific "Wilted Plant" state (`plant_error`) with a button to open Settings.
+- **Concurrency:**
+  - All HealthKit queries must be performed on a background thread (`Task.detached`).
+  - UI updates must happen on the `MainActor`.
+
+### 3.2 Persistence
+
+- **Technology:** `UserDefaults` (for MVP) or `SwiftData` (for V2).
+- **Data Stored:**
+  - `lastKnownStepCount` (Int) - For displaying data while HealthKit loads.
+  - `currentStageIndex` (Int) - For the Widget to read quickly.
+  - `dailyGoal` (Int) - Default 10,000.
+
+---
+
+## 4. DESIGN SYSTEM (ASSETS & TOKENS)
+
+### 4.1 Typography
+
+**Font Family:** SF Pro Rounded
+
+- `Display Title`: Size 34, Weight: Bold.
+- `Stat Text`: Size 20, Weight: Semibold.
+- `Caption`: Size 14, Weight: Medium, Color: Secondary.
+
+### 4.2 Color Palette
+
+| Token Name     | Hex Code  | Usage                |
+| :------------- | :-------- | :------------------- |
+| `App.Soil`     | `#3E2723` | Ground/Pot elements  |
+| `App.Stem`     | `#66BB6A` | Plant greenery       |
+| `App.Petal`    | `#F06292` | Flower bloom         |
+| `Bg.Day.Top`   | `#E3F2FD` | Day Gradient Start   |
+| `Bg.Day.Bot`   | `#FFFFFF` | Day Gradient End     |
+| `Bg.Night.Top` | `#1A237E` | Night Gradient Start |
+| `Bg.Night.Bot` | `#000000` | Night Gradient End   |
+
+### 4.3 Haptics
+
+- **App Launch:** `soft` impact.
+- **Growth Event:** `medium` impact.
+- **Goal Reached:** `success` notification type.
+
+---
+
+## 5. NON-FUNCTIONAL REQUIREMENTS
+
+- **Accessibility:** All images must have meaningful `accessibilityLabel` (e.g., "Plant is currently a small sprout").
+- **Dark Mode:** The app uses custom gradients, but text must be legible in both Light and Dark system modes.
+- **Localization:** English only for V1.
