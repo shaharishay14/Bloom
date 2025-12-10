@@ -66,25 +66,26 @@ _(Agent: Mark [x] upon completion)_
 
 ## PHASE 1: FOUNDATION (Setup)
 
-- [ ] **Task 1.1: The Workspace**
+- [x] **Task 1.1: The Workspace**
   - _Learn:_ Xcode Project Structure, Git Init, `.gitignore`.
-- [ ] **Task 1.2: The Design System**
+- [x] **Task 1.2: The Design System**
   - _Learn:_ Creating a reusable `Theme` (Colors/Fonts) using Swift Extensions.
 
 ## PHASE 2: VISUAL ENGINEERING (UI/UX)
 
-- [ ] **Task 2.1: The Asset Pipeline**
+- [x] **Task 2.1: The Asset Pipeline**
   - _Learn:_ Managing Image Sets in `Assets.xcassets`.
-- [ ] **Task 2.2: The Plant View**
+- [x] **Task 2.2: The Plant View**
   - _Learn:_ SwiftUI View Composition, `Image` modifiers, `GeometryReader`.
 - [ ] **Task 2.3: Organic Motion**
   - _Learn:_ `matchedGeometryEffect` vs. Transitions. Making it feel "alive."
 
 ## PHASE 3: ARCHITECTURE (Logic)
 
-- [ ] **Task 3.1: The Growth Engine (ViewModel)**
+- [x] **Task 3.1: The Growth Engine (ViewModel)**
   - _Learn:_ MVVM Pattern, Input/Output, State Management.
-- [ ] **Task 3.2: Persistence**
+  - _Status:_ Core logic & persistence complete. HealthKit integration pending (Phase 4).
+- [x] **Task 3.2: Persistence**
   - _Learn:_ Saving state so the plant doesn't die when the app closes (`UserDefaults` or `SwiftData`).
 
 ## PHASE 4: REAL WORLD DATA (HealthKit)
