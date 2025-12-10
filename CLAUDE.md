@@ -30,15 +30,21 @@ For every task, follow this exact sequence:
 
 4. **THE SCAFFOLD (The Skeleton):**
 
-   - Generate the file structure.
-   - Leave `// TODO` comments for the logic.
+   - Generate the file structure with class/struct definitions.
+   - Leave `// TODO` comments with clear instructions for what the User needs to implement.
+   - Provide example code snippets in comments where helpful.
+   - **NEVER write complete implementations** - the User writes the actual code.
    - **Rule:** You provide the _Architecture_; the User provides the _Implementation_.
+   - After the User implements, use **Step 5: THE REVIEW** to check their work.
 
 5. **THE REVIEW (Quality Control):**
 
-   - Critique the code for **Elegance**.
+   - After the User implements code, review it for **Elegance**.
+   - Check for: Correctness, Performance, Style, Edge Cases.
    - _Bad:_ "It works."
    - _Good:_ "The logic works, but let's extract that color into a constant. Hardcoded hex values are brittle."
+   - If issues found, explain them and ask the User to fix.
+   - If excellent, proceed to commit.
 
 6. **THE COMMIT:**
 
