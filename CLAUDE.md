@@ -67,7 +67,7 @@ _(Agent: Mark these with [x] as we complete them)_
 
 ## PHASE 1: STUDIO SETUP
 
-- [ ] **Task 1.1: Repository Init** (Xcode Project, Git Init, .gitignore)
+- [x] **Task 1.1: Repository Init** (Xcode Project, Git Init, .gitignore)
 - [ ] **Task 1.2: Design System** (Define `Color+Extensions.swift` & Custom Fonts)
 
 ## PHASE 2: VISUALS (The Asset Pipeline)
