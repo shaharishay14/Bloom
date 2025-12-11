@@ -14,31 +14,26 @@ struct DashboardView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // TODO: Add background gradient
-                // Use the backgroundGradient computed property below
+                backgroundGradient
+                    .ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // TODO: Add header
-                    // Use the header computed property below
-                    // Add .padding(.top, 60) and .padding(.horizontal, 24)
+                    header.padding(.top, 60).padding(.horizontal, 85) // Centered layout for Zen aesthetic
 
                     Spacer()
 
-                    // TODO: Add PlantView
-                    // Pass viewModel.plantStage to PlantView
-                    // Set height to 60% of screen using geometry.size.height * 0.6
-
+                    PlantView(stage: viewModel.plantStage)
+                        .frame(height: geometry.size.height * 0.6)
+                    
                     Spacer()
 
-                    // TODO: Add stats footer
-                    // Use the statsFooter computed property below
-                    // Add .padding(.horizontal, 24) and .padding(.bottom, 40)
+                    statsFooter
+                        .padding(.bottom, 40).padding(.horizontal, 85) // Centered layout for Zen aesthetic
                 }
             }
         }
         .task {
-            // TODO: Fetch steps when view appears
-            // Call: await viewModel.fetchTodaySteps()
+            await viewModel.fetchTodaySteps()
 
         }
     }
@@ -47,31 +42,34 @@ struct DashboardView: View {
 
     /// Dynamic gradient based on time of day
     private var backgroundGradient: LinearGradient {
-        // TODO: Implement time-based gradient
-        // Steps:
-        // 1. Get current hour: Calendar.current.component(.hour, from: Date())
-        // 2. Check if isDaytime: hour >= 6 && hour < 18
-        // 3. Return LinearGradient with:
-        //    - If daytime: Color.bloom.background.day.top → .day.bottom
-        //    - If nighttime: Color.bloom.background.night.top → .night.bottom
-        //    - startPoint: .top, endPoint: .bottom
-
-        return LinearGradient(colors: [.blue, .white], startPoint: .top, endPoint: .bottom)
+        let hour = Calendar.current.component(.hour, from: Date())
+        let isDayTime = hour >= 6 && hour < 18
+        
+        if isDayTime {
+            return LinearGradient(colors:[Color.bloom.background.day.top, Color.bloom.background.day.bottom],
+              startPoint: .top,
+              endPoint: .bottom)
+        }
+        else {
+            return LinearGradient(colors:[Color.bloom.background.night.top, Color.bloom.background.night.bottom],
+              startPoint: .top,
+              endPoint: .bottom)
+        }
     }
 
     /// Minimalist header
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                // TODO: Add greeting Text
-                // Use the greeting computed property below
-                // Font: .bloom.displayTitle
-                // Color: .primary
-
-                // TODO: Add loading indicator
-                // If viewModel.isLoading, show "Loading..." text
-                // Font: .bloom.caption
-                // Color: .secondary
+                Text(greeting)
+                    .font(.bloom.displayTitle)
+                    .foregroundColor(.primary)
+                
+                if viewModel.isLoading {
+                    Text("Loading...")
+                        .font(.bloom.caption)
+                        .foregroundColor(.secondary)
+                }
             }
 
             Spacer()
@@ -80,36 +78,60 @@ struct DashboardView: View {
 
     /// Greeting based on time of day
     private var greeting: String {
-        // TODO: Return time-based greeting
-        // Get hour from Calendar.current.component(.hour, from: Date())
-        // 0-12: "Good Morning"
-        // 12-18: "Good Afternoon"
-        // 18-24: "Good Evening"
-
-        return "Good Morning"
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 0..<12:
+            return "Good Morning"
+        case 12..<18:
+            return "Good Afternoon"
+        default:
+            return "Good Evening"
+        }
     }
 
     /// Stats footer with step count and progress bar
     private var statsFooter: some View {
         VStack(spacing: 16) {
-            // TODO: Step Counter HStack
-            // Layout: "[4,250] / [10,000]     [42%]"
-            // Use viewModel.currentSteps, viewModel.dailyGoal, viewModel.progressPercentage
-            // Format numbers with .formatted()
-            // Fonts: statText for numbers, caption for percentage
+            HStack {
+                Text("\(viewModel.currentSteps.formatted()) / \(viewModel.dailyGoal.formatted())")
+                    .font(.bloom.statText)
+                
+                Spacer()
+                
+                Text("\(viewModel.progressPercentage)%")
+                    .font(.bloom.caption)
+                    .foregroundStyle(.secondary)
+            }
+            ProgressView(value: min(viewModel.progress, 1.0))
+                .tint(Color.bloom.stem)
+                .scaleEffect(y: 2, anchor: .center)
+                .clipShape(Capsule())
 
-            // TODO: Progress Bar
-            // Use ProgressView(value:) with min(viewModel.progress, 1.0)
-            // Tint: Color.bloom.stem
-            // Scale vertically: .scaleEffect(y: 2, anchor: .center)
-
-            // TODO: Error Message (conditional)
-            // If viewModel.errorMessage exists, show:
-            // - HStack with warning icon and error text
-            // - Button to open Settings
-            // - Background: Color.orange.opacity(0.1)
-            // - cornerRadius(8)
+            if let message = viewModel.errorMessage {
+                HStack(spacing: 10) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                    
+                    Text(message)
+                        .font(.caption)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                    
+                    Spacer()
+                    
+                    Button("Settings") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    .font(.caption.bold())
+                }
+                .padding(12)
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(8)
+            }
         }
+        .padding(.horizontal)
     }
 }
 
