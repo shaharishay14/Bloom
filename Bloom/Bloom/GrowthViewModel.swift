@@ -56,7 +56,6 @@ class GrowthViewModel: ObservableObject {
     // MARK: - Initialization
 
     init() {
-        // TODO: Call loadPersistedData() to restore saved state
         loadPersistedData()
 
     }
@@ -65,41 +64,79 @@ class GrowthViewModel: ObservableObject {
 
     /// Request HealthKit authorization
     func requestAuthorization() async {
-        // TODO: Implement HealthKit authorization
-        // Steps:
-        // 1. Check if HKHealthStore.isHealthDataAvailable()
-        //    - If false, set errorMessage and return
-        // 2. Create a Set<HKObjectType> with stepType
-        // 3. Call healthStore.requestAuthorization(toShare: [], read: typesToRead)
-        // 4. If success: set isAuthorized = true, call fetchTodaySteps()
-        // 5. If error: set isAuthorized = false, set errorMessage
-
+        guard HKHealthStore.isHealthDataAvailable() else {
+            errorMessage = "HealthKit is not available on this device."
+            return
+        }
+        
+        let typesToRead: Set<HKObjectType> = [stepType]
+        
+        do {
+            try await healthStore.requestAuthorization(toShare: [], read: typesToRead)
+            isAuthorized = true
+            errorMessage = nil
+            
+            await fetchTodaySteps()
+        }
+        catch {
+            isAuthorized = false
+            errorMessage = "Please enable Health access in Settings."
+        }
+            
     }
 
     /// Fetch today's step count from HealthKit
     func fetchTodaySteps() async {
-        // TODO: Implement step fetching logic
-        // Steps:
-        // 1. Check if isAuthorized, if not call requestAuthorization()
-        // 2. Set isLoading = true
-        // 3. Get today's date range (midnight to now) using Calendar
-        //    - Hint: Calendar.current.startOfDay(for: Date())
-        // 4. Create HKQuery.predicateForSamples(withStart:end:)
-        // 5. Create HKStatisticsQuery with:
-        //    - quantityType: stepType
-        //    - predicate: from step 4
-        //    - options: .cumulativeSum
-        // 6. In the completion handler:
-        //    - Use Task { @MainActor in ... } to update UI
-        //    - Get sum from result?.sumQuantity()
-        //    - Convert to Int: sum.doubleValue(for: .count())
-        //    - Update currentSteps
-        //    - Update plantStage using PlantStage.from(progress:)
-        //    - Call savePersistedData()
-        //    - Set isLoading = false
-        // 7. Execute the query: healthStore.execute(query)
-
+        guard isAuthorized else {
+            await requestAuthorization()
+            return
+        }
+        
+        isLoading = true
+        
+        let calendar = Calendar.current
+        let now = Date()
+        let startOfDay = calendar.startOfDay(for: now)
+        
+        let predicate = HKQuery.predicateForSamples(
+            withStart: startOfDay,
+            end: now,
+            options: .strictStartDate
+        )
+        
+        let query = HKStatisticsQuery(
+            quantityType: stepType,
+            quantitySamplePredicate: predicate,
+            options: .cumulativeSum
+        ) { [weak self] _, result, error in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                
+                self.isLoading = false
+                
+                if let error = error {
+                    self.errorMessage = "Failed to fetch steps: \(error.localizedDescription)"
+                    return
+                }
+                
+                if let sum = result?.sumQuantity() {
+                    let steps = Int(sum.doubleValue(for: .count()))
+                    self.currentSteps = steps
+                    self.plantStage = PlantStage.from(progress: self.progress)
+                    self.savePersistedData()
+                }
+                else {
+                    self.currentSteps = 0
+                    self.plantStage = .seed
+                }
+                
+                self.errorMessage = nil
+            }
+            
+        }
+        healthStore.execute(query)
     }
+    
 
     /// Manually set step count (for testing/debugging)
     func setSteps(_ steps: Int) {
@@ -128,16 +165,6 @@ class GrowthViewModel: ObservableObject {
 
     /// Load persisted data from UserDefaults
     private func loadPersistedData() {
-        // TODO: Implement persistence loading
-        // Steps:
-        // 1. Get UserDefaults.standard
-        // 2. Check lastUpdateDate:
-        //    - If date exists and is NOT today (use Calendar.current.isDateInToday())
-        //    - Then reset: currentSteps = 0, plantStage = .seed, return early
-        // 3. Load saved values:
-        //    - currentSteps from Keys.lastKnownStepCount
-        //    - dailyGoal from Keys.dailyGoal (default to 10_000 if 0)
-        // 4. Recalculate plantStage from progress
         let defaults = UserDefaults.standard
         
         if let lastDate = defaults.object(forKey: Keys.lastUpdateDate) as? Date {
@@ -166,21 +193,11 @@ class GrowthViewModel: ObservableObject {
 
     /// Save current data to UserDefaults
     private func savePersistedData() {
-        // TODO: Implement persistence saving
-        // Steps:
-        // 1. Get UserDefaults.standard
-        // 2. Save these values:
-        //    - currentSteps → Keys.lastKnownStepCount
-        //    - dailyGoal → Keys.dailyGoal
-        //    - plantStage.rawValue → Keys.currentStageIndex
-        //    - Date() → Keys.lastUpdateDate
         let defaults = UserDefaults.standard
         
         defaults.set(currentSteps, forKey: Keys.lastKnownStepCount)
         defaults.set(dailyGoal, forKey: Keys.dailyGoal)
         defaults.set(plantStage.rawValue, forKey: Keys.currentStageIndex)
         defaults.set(Date(), forKey: Keys.lastUpdateDate)
-        
-
     }
 }
