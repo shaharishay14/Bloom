@@ -77,8 +77,9 @@ _(Agent: Mark [x] upon completion)_
   - _Learn:_ Managing Image Sets in `Assets.xcassets`.
 - [x] **Task 2.2: The Plant View**
   - _Learn:_ SwiftUI View Composition, `Image` modifiers, `GeometryReader`.
-- [ ] **Task 2.3: Organic Motion**
+- [ ] **Task 2.3: Organic Motion (OPTIONAL)**
   - _Learn:_ `matchedGeometryEffect` vs. Transitions. Making it feel "alive."
+  - _Status:_ Can be added later for polish.
 
 ## PHASE 3: ARCHITECTURE (Logic)
 
@@ -90,15 +91,36 @@ _(Agent: Mark [x] upon completion)_
 
 ## PHASE 4: REAL WORLD DATA (HealthKit)
 
-- [ ] **Task 4.1: The Handshake**
+- [x] **Task 4.1: The Handshake**
   - _Learn:_ Privacy Permissions, `Info.plist` configuration.
-- [ ] **Task 4.2: The Data Stream**
+  - _Status:_ HealthKit code complete. Need to add Info.plist entry before running.
+- [x] **Task 4.2: The Data Stream**
   - _Learn:_ `async/await` concurrency, fetching `HKStepCount`.
+  - _Status:_ Complete with proper async/await, @MainActor, and [weak self].
 
 ## PHASE 5: ECOSYSTEM (Widgets)
 
-- [ ] **Task 5.1: The Widget**
+- [ ] **Task 5.1: The Widget (FUTURE)**
   - _Learn:_ Code Sharing (App Groups), TimelineProvider.
+  - _Status:_ Not required for MVP. Add after core app is working.
+
+---
+
+## 🎯 NEXT SESSION: FINAL WIRING (5 Minutes)
+
+The app is **95% complete**. Just need to wire it up:
+
+**Task A: Add Info.plist Entry**
+- File: `Bloom/Bloom/Info.plist`
+- Add key: `NSHealthShareUsageDescription`
+- Value: `"Bloom needs access to your step count to grow your plant as you walk."`
+- How: In Xcode, right-click Info.plist → Add Row → "Privacy - Health Share Usage Description"
+
+**Task B: Update ContentView**
+- File: `ContentView.swift`
+- Replace body with: `DashboardView()`
+
+**Then:** Build and run on a real device (Simulator won't have step data). Watch your plant grow! 🌱
 
 ---
 
