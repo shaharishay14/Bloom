@@ -46,16 +46,6 @@ enum PlantStage: Int, CaseIterable {
 
     /// Calculate stage from progress percentage (0.0 - 1.0+)
     static func from(progress: Double) -> PlantStage {
-        // TODO: Implement the stage calculation logic
-        // PRD Spec (Section 2.1):
-        // - Stage 0: 0% - 9%
-        // - Stage 1: 10% - 24%
-        // - Stage 2: 25% - 39%
-        // - Stage 3: 40% - 59%
-        // - Stage 4: 60% - 79%
-        // - Stage 5: 80% - 99%
-        // - Stage 6: 100%+
-
         let percentage = progress * 100
 
         switch percentage {
@@ -79,22 +69,13 @@ struct PlantView: View {
     @Namespace private var plantAnimation
 
     var body: some View {
-        // TODO: Implement the plant view layout
-        // PRD Requirements (Section 2.2):
-        // - Plant should occupy 60% of screen height
-        // - Use .transition(.opacity) for smooth stage changes
-        // - Apply spring animation: response: 0.6, dampingFraction: 0.7
-
         GeometryReader { geometry in
-            VStack {
-                Image(stage.imageName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(height: geometry.size.height * 0.6)
-                    .accessibilityLabel(stage.accessibilityLabel)
-                    .transition(.opacity)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Image(stage.imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .accessibilityLabel(stage.accessibilityLabel)
+                .transition(.opacity)
         }
     }
 }

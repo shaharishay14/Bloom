@@ -18,7 +18,7 @@ struct DashboardView: View {
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    header.padding(.top, 60).padding(.horizontal, 85) // Centered layout for Zen aesthetic
+                    header.padding(.top, 60).padding(.horizontal, 119) // Centered layout for Zen aesthetic
 
                     Spacer()
 
@@ -56,23 +56,28 @@ struct DashboardView: View {
               endPoint: .bottom)
         }
     }
+    
+    private var textColor: Color {
+         let hour = Calendar.current.component(.hour, from: Date())
+         let isDayTime = hour >= 6 && hour < 18
+         return isDayTime ? Color(hex: "1A1A1A") : .white
+     }
 
     /// Minimalist header
     private var header: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(greeting)
-                    .font(.bloom.displayTitle)
-                    .foregroundColor(.primary)
-                
-                if viewModel.isLoading {
-                    Text("Loading...")
-                        .font(.bloom.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
+        VStack(spacing: 4) {
+            Text(greeting)
+                .font(.bloom.displayTitle)
+                .foregroundColor(textColor)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .frame(maxWidth: .infinity, alignment: .center)
 
-            Spacer()
+            if viewModel.isLoading {
+                Text("Loading...")
+                    .font(.bloom.caption)
+                    .foregroundColor(.secondary)
+            }
         }
     }
 
@@ -95,12 +100,13 @@ struct DashboardView: View {
             HStack {
                 Text("\(viewModel.currentSteps.formatted()) / \(viewModel.dailyGoal.formatted())")
                     .font(.bloom.statText)
+                    .foregroundColor(textColor)
                 
                 Spacer()
                 
                 Text("\(viewModel.progressPercentage)%")
                     .font(.bloom.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(textColor)
             }
             ProgressView(value: min(viewModel.progress, 1.0))
                 .tint(Color.bloom.stem)

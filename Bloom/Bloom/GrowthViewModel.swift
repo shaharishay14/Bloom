@@ -132,7 +132,6 @@ class GrowthViewModel: ObservableObject {
                 
                 self.errorMessage = nil
             }
-            
         }
         healthStore.execute(query)
     }

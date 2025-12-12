@@ -93,7 +93,7 @@ extension Font {
     struct Bloom {
         // TODO: Implement typography tokens from PRD Section 4.1
         // PRD Spec: Display Title (34pt, Bold)
-        static let displayTitle: Font = .system(size: 34, weight: .bold, design: .rounded)
+        static let displayTitle: Font = .system(size: 24, weight: .bold, design: .rounded)
 
         // PRD Spec: Stat Text (20pt, Semibold)
         static let statText: Font = .system(size: 20, weight: .semibold, design: .rounded)
